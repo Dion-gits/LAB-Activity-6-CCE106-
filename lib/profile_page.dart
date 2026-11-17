@@ -1,10 +1,62 @@
 import 'package:flutter/material.dart';
 
+import 'demo_auth.dart';
+import 'login_screen.dart';
+
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
+  Future<void> _confirmLogout(BuildContext context) async {
+    final bool? shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Log out?'),
+          content: const Text(
+            'You will be returned to the Login screen.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Log out'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout != true) {
+      return;
+    }
+
+    // Clear the demo session first, then wipe the navigation stack.
+    DemoAuth.logout();
+
+    if (!context.mounted) {
+      return;
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => const LoginScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final String username =
+        DemoAuth.currentUsername ?? 'Guest';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Profile'),
@@ -33,6 +85,15 @@ class ProfilePage extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
+          const SizedBox(height: 4),
+          Text(
+            'Logged in as: $username',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade700,
+            ),
+          ),
           const SizedBox(height: 24),
           Card(
             child: Column(
@@ -55,6 +116,20 @@ class ProfilePage extends StatelessWidget {
                   subtitle: Text('dionne.enola@example.com'),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            onPressed: () => _confirmLogout(context),
+            icon: const Icon(Icons.logout),
+            label: const Text(
+              'Logout',
+              style: TextStyle(fontSize: 16),
             ),
           ),
         ],
